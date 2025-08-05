@@ -1,5 +1,6 @@
 package com.ddiring.BackEnd_Escrow.service;
 
+import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
 import com.ddiring.BackEnd_Escrow.entity.Escrow;
 import com.ddiring.BackEnd_Escrow.entity.Record;
@@ -8,6 +9,7 @@ import com.ddiring.BackEnd_Escrow.enums.TransType;
 import com.ddiring.BackEnd_Escrow.repository.EscrowRepository;
 import com.ddiring.BackEnd_Escrow.repository.RecordRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -33,26 +35,29 @@ public class RecordService {
     }
 
     //거래내역 저장
-    public void saveRecord(Integer escrowSeq, Integer userSeq, BigDecimal amount,
-                        Integer transSeq, TransType transType) {
-        Escrow escrow = getEscrow(escrowSeq);
+    public void saveRecord(SaveRecordRequest saveRecordRequest) {
+        Escrow escrow = getEscrow(saveRecordRequest.getEscrowSeq());
 
+        TransType transType = TransType.fromCode(saveRecordRequest.getTransType());
         int flow = getFlowByTransType(transType);
 
+        LocalDateTime now = LocalDateTime.now();
+        String userSeq = saveRecordRequest.getUserSeq().toString();
+
         Record record = Record.builder()
-                .escrowSeq(escrowSeq)
-                .userSeq(userSeq)
-                .transSeq(transSeq)
+                .escrowSeq(saveRecordRequest.getEscrowSeq())
+                .userSeq(saveRecordRequest.getUserSeq())
+                .transSeq(saveRecordRequest.getTransSeq())
                 .transType(transType)
-                .amount(amount)
+                .amount(saveRecordRequest.getAmount())
                 .flow(flow)
                 .escrowStatus(EscrowStatus.COMPLETED)
-                .initiatedAt(LocalDateTime.now())
-                .completedAt(LocalDateTime.now())
-                .createdId(userSeq.toString())
-                .createdAt(LocalDateTime.now())
-                .updatedId(userSeq.toString())
-                .updatedAt(LocalDateTime.now())
+                .initiatedAt(now)
+                .completedAt(now)
+                .createdId(userSeq)
+                .createdAt(now)
+                .updatedId(userSeq)
+                .updatedAt(now)
                 .build();
 
         recordRepository.save(record);

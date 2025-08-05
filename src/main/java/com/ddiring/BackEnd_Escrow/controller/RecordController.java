@@ -3,7 +3,6 @@ package com.ddiring.BackEnd_Escrow.controller;
 import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
 import com.ddiring.BackEnd_Escrow.dto.response.BalanceResponse;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
-import com.ddiring.BackEnd_Escrow.enums.TransType;
 import com.ddiring.BackEnd_Escrow.service.RecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,26 +19,14 @@ public class RecordController {
 
     @PostMapping("/deposit")
     public ResponseEntity<?> deposit(@RequestBody SaveRecordRequest saveRecordRequest) {
-        TransType type = TransType.fromCode(saveRecordRequest.getTransType());
-
-        recordService.saveRecord(saveRecordRequest.getEscrowSeq(),
-                                 saveRecordRequest.getUserSeq(),
-                                 saveRecordRequest.getAmount(),
-                                 saveRecordRequest.getTransSeq(),
-                                 type);
+        recordService.saveRecord(saveRecordRequest);
 
         return  ResponseEntity.ok("입금 성공");
     }
 
     @PostMapping("/withdraw")
     public ResponseEntity<?> withdraw(@RequestBody SaveRecordRequest saveRecordRequest) {
-        TransType type = TransType.fromCode(saveRecordRequest.getTransType());
-
-        recordService.saveRecord(saveRecordRequest.getEscrowSeq(),
-                                 saveRecordRequest.getUserSeq(),
-                                 saveRecordRequest.getAmount(),
-                                 saveRecordRequest.getTransSeq(),
-                                 type);
+        recordService.saveRecord(saveRecordRequest);
 
         return  ResponseEntity.ok("출금 성공");
     }
