@@ -1,0 +1,28 @@
+package com.ddiring.BackEnd_Escrow.repository;
+
+import com.ddiring.BackEnd_Escrow.entity.Record;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Repository
+public interface RecordRepository extends JpaRepository<Record, Integer> {
+    List<Record> findAllByEscrowSeq(Integer escrowSeq);
+
+    @Query("""
+        SELECT COALESCE(SUM(
+            CASE 
+                WHEN r.flow = 1 THEN r.amount 
+                ELSE -r.amount 
+            END
+        ), 0)
+        FROM Record r
+        WHERE r.escrowSeq = :escrowSeq
+          AND r.escrowStatus = com.ddiring.BackEnd_Escrow.enums.EscrowStatus.COMPLETED
+    """)
+    BigDecimal findBalanceByEscrowSeq(@Param("escrowSeq") Integer escrowSeq);
+}

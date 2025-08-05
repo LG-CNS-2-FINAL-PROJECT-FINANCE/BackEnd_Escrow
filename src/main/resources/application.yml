@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: BackEnd_Escrow
+
+  profiles:
+    active: local
