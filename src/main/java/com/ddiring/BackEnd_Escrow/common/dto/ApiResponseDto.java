@@ -6,30 +6,27 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class ApiResponseDto<T> {
+    private int status;
     private String code;
     private String message;
     private T data;
 
-    public ApiResponseDto(String code, String message) {
-        this.code = code;
-        this.message = message;
-    }
-
-    public ApiResponseDto(String code, String message, T data) {
+    public ApiResponseDto(int status, String code, String message, T data) {
+        this.status = status;
         this.code = code;
         this.message = message;
         this.data = data;
     }
 
     public static <T> ApiResponseDto<T> createOk(T data) {
-        return new ApiResponseDto<>("OK", "요청이 성공하였습니다.", data);
+        return new ApiResponseDto<>(200, "OK", "요청을 성공하였습니다.", data);
     }
 
     public static ApiResponseDto<String> defaultOk() {
         return ApiResponseDto.createOk(null);
     }
 
-    public static ApiResponseDto<String> createError(String code, String message) {
-        return new ApiResponseDto<>(code, message);
+    public static <T> ApiResponseDto<T> createError(int status, String code, String message, T data) {
+        return new ApiResponseDto<>(status, code, message, data);
     }
 }

@@ -1,9 +1,9 @@
 package com.ddiring.BackEnd_Escrow;
 
+import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
 import com.ddiring.BackEnd_Escrow.entity.Escrow;
 import com.ddiring.BackEnd_Escrow.entity.Record;
-import com.ddiring.BackEnd_Escrow.enums.TransType;
 import com.ddiring.BackEnd_Escrow.repository.EscrowRepository;
 import com.ddiring.BackEnd_Escrow.repository.RecordRepository;
 import com.ddiring.BackEnd_Escrow.service.RecordService;
@@ -40,7 +40,7 @@ public class RecordServiceTests {
         Integer userSeq = 1001;
         Integer transSeq = 999;
         BigDecimal amount = new BigDecimal("100000");
-        TransType transType = TransType.INVESTMENT;
+        Integer transTypeCode = 1;
 
         Escrow testEscrow = Escrow.builder()
                 .escrowSeq(escrowSeq)
@@ -51,7 +51,17 @@ public class RecordServiceTests {
 
         when(escrowRepository.findByEscrowSeq(escrowSeq)).thenReturn(java.util.Optional.of(testEscrow));
 
-        recordService.saveRecord(escrowSeq, userSeq, amount, transSeq, transType);
+        SaveRecordRequest request = new SaveRecordRequest(
+                escrowSeq,
+                userSeq,
+                amount,
+                transSeq,
+                transTypeCode
+        );
+
+
+        // when
+        recordService.saveRecord(request);
 
         verify(recordRepository, times(1)).save(any(Record.class));
     }

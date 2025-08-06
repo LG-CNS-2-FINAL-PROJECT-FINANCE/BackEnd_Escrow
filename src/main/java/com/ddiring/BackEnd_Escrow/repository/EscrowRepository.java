@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface EscrowRepository extends JpaRepository<Escrow, Integer> {
     Optional<Escrow> findByEscrowSeq(Integer escrowSeq);
+    boolean existsByEscrowSeq(Integer escrowSeq);
+    boolean existsByAccount(String account);
 }

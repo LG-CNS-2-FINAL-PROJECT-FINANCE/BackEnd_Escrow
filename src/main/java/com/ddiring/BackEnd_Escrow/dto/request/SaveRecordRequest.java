@@ -1,5 +1,6 @@
 package com.ddiring.BackEnd_Escrow.dto.request;
 
+import com.ddiring.BackEnd_Escrow.enums.TransType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

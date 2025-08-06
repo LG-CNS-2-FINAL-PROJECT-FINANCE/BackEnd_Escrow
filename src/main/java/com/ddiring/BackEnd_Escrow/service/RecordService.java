@@ -1,5 +1,7 @@
 package com.ddiring.BackEnd_Escrow.service;
 
+import com.ddiring.BackEnd_Escrow.common.exception.ApplicationException;
+import com.ddiring.BackEnd_Escrow.common.exception.ErrorCode;
 import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
 import com.ddiring.BackEnd_Escrow.entity.Escrow;
@@ -9,7 +11,6 @@ import com.ddiring.BackEnd_Escrow.enums.TransType;
 import com.ddiring.BackEnd_Escrow.repository.EscrowRepository;
 import com.ddiring.BackEnd_Escrow.repository.RecordRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,13 +26,25 @@ public class RecordService {
     //거래내역 조회
     public List<HistoryResponse> getRecordsByEscrowSeq(Integer escrowSeq) {
         List<Record> records = recordRepository.findAllByEscrowSeq(escrowSeq);
-
+        if (records == null || records.isEmpty()) {
+            throw new ApplicationException(ErrorCode.ESCROW_HISTORY_NOT_FOUND);
+        }
         return records.stream().map(HistoryResponse::fromEntity).toList();
     }
 
     //잔액 조회
     public BigDecimal getBalanceByEscrowSeq(Integer escrowSeq) {
-        return recordRepository.findBalanceByEscrowSeq(escrowSeq);
+        boolean exists = escrowRepository.existsByEscrowSeq(escrowSeq);
+        if (!exists) {
+            throw new ApplicationException(ErrorCode.ESCROW_NOT_FOUND);
+        }
+
+        BigDecimal balance = recordRepository.findBalanceByEscrowSeq(escrowSeq);
+        if (balance == null) {
+            throw new ApplicationException(ErrorCode.ESCROW_BALANCE_NOT_FOUND);
+        }
+
+        return balance;
     }
 
     //거래내역 저장
@@ -43,6 +56,13 @@ public class RecordService {
 
         LocalDateTime now = LocalDateTime.now();
         String userSeq = saveRecordRequest.getUserSeq().toString();
+
+        BigDecimal amount = saveRecordRequest.getAmount();
+        if (flow == 0) {    //출금
+            validateWithdraw(saveRecordRequest.getEscrowSeq(), amount);
+        } else {            //입금
+            validateDeposit(amount);
+        }
 
         Record record = Record.builder()
                 .escrowSeq(saveRecordRequest.getEscrowSeq())
@@ -66,13 +86,13 @@ public class RecordService {
     //투자 상품 계좌 체크
     private Escrow getEscrow(int escrowSeq) {
         return escrowRepository.findByEscrowSeq(escrowSeq)
-                .orElseThrow(() -> new IllegalArgumentException("해당 프로젝트의 계좌가 존재하지 않습니다."));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.ESCROW_NOT_FOUND));
     }
 
     //TransType에 따른 입출금 구분
     private int getFlowByTransType(TransType transType) {
         if (transType == null) {
-            throw new IllegalArgumentException("transType은 null일 수 없습니다.");
+            throw new ApplicationException(ErrorCode.INVALID_TRANS_TYPE);
         }
 
         return switch (transType) {
@@ -81,5 +101,28 @@ public class RecordService {
             case DISTRIBUTED -> 0;  // 분배: 출금
         };
     }
+
+    //입금 전 잔액 조회
+    private void validateDeposit(BigDecimal amount) {
+        validatePositiveAmount(amount, ErrorCode.DEPOSIT_AMOUNT_INVALID.defaultMessage());
+    }
+
+    //출금 전 잔액 조회
+    private void validateWithdraw(Integer escrowSeq, BigDecimal amount) {
+        validatePositiveAmount(amount, ErrorCode.WITHDRAW_AMOUNT_INVALID.defaultMessage());
+
+        BigDecimal balance = getBalanceByEscrowSeq(escrowSeq);
+        if (balance.compareTo(amount) < 0) {
+            throw new ApplicationException(ErrorCode.INSUFFICIENT_BALANCE);
+        }
+    }
+
+    //입출금 금액 체크
+    private void validatePositiveAmount(BigDecimal amount, String message) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ApplicationException(ErrorCode.INVALID_PARAMETER, message);
+        }
+    }
+
 
 }
