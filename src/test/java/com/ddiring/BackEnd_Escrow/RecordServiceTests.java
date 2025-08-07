@@ -30,7 +30,6 @@ public class RecordServiceTests {
     void setUp() {
         escrowRepository = mock(EscrowRepository.class);
         recordRepository = mock(RecordRepository.class);
-        recordService = new RecordService(escrowRepository, recordRepository);
     }
 
     @Test

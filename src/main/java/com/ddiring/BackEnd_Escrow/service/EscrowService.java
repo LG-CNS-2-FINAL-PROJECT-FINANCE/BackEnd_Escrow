@@ -6,6 +6,7 @@ import com.ddiring.BackEnd_Escrow.dto.response.CreateAccountResponse;
 import com.ddiring.BackEnd_Escrow.entity.Escrow;
 import com.ddiring.BackEnd_Escrow.repository.EscrowRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -14,21 +15,23 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EscrowService {
     private final EscrowRepository escrowRepository;
 
-    //에스크로 계좌 개설
-    public CreateAccountResponse createAccount(Integer projectSeq, String userSeq) {
+    //에스크로 계좌 생성
+    public CreateAccountResponse createAccount(String projectId) {
+        System.out.println("[ESCROW] createAccount called with projectId = " + projectId);
         String accountNumber = generateUniqueAccountNumber();
 
         Escrow escrow = Escrow.builder()
-                .projectSeq(projectSeq)
+                .projectId(projectId)
                 .account(accountNumber)
-                .createdId(userSeq)
+                .createdId("admin")
                 .createdAt(LocalDateTime.now())
-                .updatedId(userSeq)
+                .updatedId("admin")
                 .updatedAt(LocalDateTime.now())
                 .build();
 

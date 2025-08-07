@@ -22,8 +22,8 @@ public class Escrow {
     private Integer escrowSeq;
 
     //프로젝트 번호
-    @Column(name = "project_seq", nullable = false)
-    private Integer projectSeq;
+    @Column(name = "project_id", nullable = false)
+    private String projectId;
 
     //에스크로 계좌
     @Column(name = "account", nullable = false, length = 50)

@@ -1,8 +1,11 @@
 package com.ddiring.BackEnd_Escrow.service;
 
+import com.ddiring.BackEnd_Escrow.client.BalanceClient;
 import com.ddiring.BackEnd_Escrow.common.exception.ApplicationException;
 import com.ddiring.BackEnd_Escrow.common.exception.ErrorCode;
+import com.ddiring.BackEnd_Escrow.dto.request.BalanceRequest;
 import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
+import com.ddiring.BackEnd_Escrow.dto.response.BalanceResponse;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
 import com.ddiring.BackEnd_Escrow.entity.Escrow;
 import com.ddiring.BackEnd_Escrow.entity.Record;
@@ -22,6 +25,7 @@ import java.util.List;
 public class RecordService {
     private final EscrowRepository escrowRepository;
     private final RecordRepository recordRepository;
+    private final BalanceClient balanceClient;
 
     //거래내역 조회
     public List<HistoryResponse> getRecordsByEscrowSeq(Integer escrowSeq) {
@@ -32,8 +36,9 @@ public class RecordService {
         return records.stream().map(HistoryResponse::fromEntity).toList();
     }
 
-    //잔액 조회
-    public BigDecimal getBalanceByEscrowSeq(Integer escrowSeq) {
+    //잔액 조회(EscrowSeq)
+    public BalanceResponse getBalanceByEscrowSeq(Integer escrowSeq) {
+        //에스크로 계좌 유무 체크
         boolean exists = escrowRepository.existsByEscrowSeq(escrowSeq);
         if (!exists) {
             throw new ApplicationException(ErrorCode.ESCROW_NOT_FOUND);
@@ -44,7 +49,16 @@ public class RecordService {
             throw new ApplicationException(ErrorCode.ESCROW_BALANCE_NOT_FOUND);
         }
 
-        return balance;
+        return new BalanceResponse(escrowSeq, balance);
+    }
+
+    //잔액 조회(projectId)
+    public BalanceResponse getBalanceByProjectId(String projectId) {
+        Integer escrowSeq = escrowRepository.findEscrowSeqByProjectId(projectId);
+        if (escrowSeq == null) {
+            throw new ApplicationException(ErrorCode.ESCROW_NOT_FOUND);
+        }
+        return getBalanceByEscrowSeq(escrowSeq);
     }
 
     //거래내역 저장
@@ -81,6 +95,13 @@ public class RecordService {
                 .build();
 
         recordRepository.save(record);
+
+        //입금일 때 Product 서비스에 잔액 보내기
+        if (flow == 1) {
+            String projectId = escrow.getProjectId();
+            sendBalanceToOtherService(projectId);
+        }
+
     }
 
     //투자 상품 계좌 체크
@@ -111,7 +132,7 @@ public class RecordService {
     private void validateWithdraw(Integer escrowSeq, BigDecimal amount) {
         validatePositiveAmount(amount, ErrorCode.WITHDRAW_AMOUNT_INVALID.defaultMessage());
 
-        BigDecimal balance = getBalanceByEscrowSeq(escrowSeq);
+        BigDecimal balance = getBalanceByEscrowSeq(escrowSeq).getBalance();
         if (balance.compareTo(amount) < 0) {
             throw new ApplicationException(ErrorCode.INSUFFICIENT_BALANCE);
         }
@@ -124,5 +145,23 @@ public class RecordService {
         }
     }
 
+    //Product 서비스에 잔액 보내기
+    public BalanceResponse sendBalanceToOtherService(String projectId) {
+        Integer escrowSeq = findEscrowSeqByProjectId(projectId);
+        BalanceResponse balanceResponse = getBalanceByEscrowSeq(escrowSeq);
 
+        BalanceRequest request = new BalanceRequest(projectId, balanceResponse.getBalance());
+        balanceClient.sendBalance(request);
+
+        return balanceResponse;
+    }
+
+    //escrowSeq로 projectId 찾기
+    private Integer findEscrowSeqByProjectId(String projectId) {
+        Integer escrowSeq = escrowRepository.findEscrowSeqByProjectId(projectId);
+        if (escrowSeq == null) {
+            throw new ApplicationException(ErrorCode.ESCROW_NOT_FOUND);
+        }
+        return escrowSeq;
+    }
 }

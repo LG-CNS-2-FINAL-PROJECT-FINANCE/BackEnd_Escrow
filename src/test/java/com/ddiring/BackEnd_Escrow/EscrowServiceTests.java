@@ -37,7 +37,7 @@ public class EscrowServiceTests {
 
         when(escrowRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        CreateAccountResponse response = escrowService.createAccount(1, "user1");
+        CreateAccountResponse response = escrowService.createAccount("project1");
 
         assertNotNull(response);
         assertNotNull(response.getAccount());
@@ -52,7 +52,7 @@ public class EscrowServiceTests {
                 .thenThrow(new org.springframework.dao.DataIntegrityViolationException("duplicate"));
 
         ApplicationException ex = assertThrows(ApplicationException.class,
-                () -> escrowService.createAccount(1, "user1"));
+                () -> escrowService.createAccount("project1"));
 
         assertEquals(ErrorCode.DUPLICATE_ACCOUNT.code(), ex.getErrorCode());
     }

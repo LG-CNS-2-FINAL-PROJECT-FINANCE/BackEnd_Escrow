@@ -4,11 +4,11 @@ import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
 import com.ddiring.BackEnd_Escrow.dto.response.BalanceResponse;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
 import com.ddiring.BackEnd_Escrow.service.RecordService;
+import feign.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -39,7 +39,8 @@ public class RecordController {
 
     @GetMapping("/{escrowSeq}/balance")
     public ResponseEntity<BalanceResponse> getBalance(@PathVariable("escrowSeq") Integer escrowSeq) {
-        BigDecimal balance = recordService.getBalanceByEscrowSeq(escrowSeq);
-        return ResponseEntity.ok(new BalanceResponse(escrowSeq, balance));
+       BalanceResponse response = recordService.getBalanceByEscrowSeq(escrowSeq);
+        return ResponseEntity.ok(response);
     }
+
 }

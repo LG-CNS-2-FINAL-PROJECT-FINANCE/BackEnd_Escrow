@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/escrow")
@@ -17,7 +15,7 @@ public class EscrowController {
 
     @PostMapping("/create")
     public ResponseEntity<CreateAccountResponse> createAccount(@RequestBody CreateAccountRequest request) {
-        CreateAccountResponse createAccountResponse = escrowService.createAccount(request.getProjectSeq(), request.getUserSeq());
+        CreateAccountResponse createAccountResponse = escrowService.createAccount(request.getProjectId());
         return ResponseEntity.ok(createAccountResponse);
     }
 }

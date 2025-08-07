@@ -4,8 +4,6 @@ import org.springframework.http.HttpStatus;
 
 public enum ErrorCode {
     INVALID_PARAMETER("INVALID_PARAMETER", "잘못된 파라미터입니다.", HttpStatus.BAD_REQUEST),
-    RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", "리소스를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    CLIENT_ERROR("CLIENT_ERROR", "클라이언트 요청에 문제가 있습니다.", HttpStatus.BAD_REQUEST),
     SERVER_ERROR("SERVER_ERROR", "서버 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     DUPLICATE_ACCOUNT("DUPLICATE_ACCOUNT", "이미 존재하는 계좌입니다.", HttpStatus.CONFLICT),
     ESCROW_NOT_FOUND("ESCROW_NOT_FOUND", "해당 프로젝트의 에스크로 계좌가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
