@@ -23,7 +23,6 @@ public class EscrowService {
 
     //에스크로 계좌 생성
     public CreateAccountResponse createAccount(String projectId) {
-        System.out.println("[ESCROW] createAccount called with projectId = " + projectId);
         String accountNumber = generateUniqueAccountNumber();
 
         Escrow escrow = Escrow.builder()

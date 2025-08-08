@@ -52,15 +52,6 @@ public class RecordService {
         return new BalanceResponse(escrowSeq, balance);
     }
 
-    //잔액 조회(projectId)
-    public BalanceResponse getBalanceByProjectId(String projectId) {
-        Integer escrowSeq = escrowRepository.findEscrowSeqByProjectId(projectId);
-        if (escrowSeq == null) {
-            throw new ApplicationException(ErrorCode.ESCROW_NOT_FOUND);
-        }
-        return getBalanceByEscrowSeq(escrowSeq);
-    }
-
     //거래내역 저장
     public void saveRecord(SaveRecordRequest saveRecordRequest) {
         Escrow escrow = getEscrow(saveRecordRequest.getEscrowSeq());
@@ -146,14 +137,12 @@ public class RecordService {
     }
 
     //Product 서비스에 잔액 보내기
-    public BalanceResponse sendBalanceToOtherService(String projectId) {
+    public void sendBalanceToOtherService(String projectId) {
         Integer escrowSeq = findEscrowSeqByProjectId(projectId);
         BalanceResponse balanceResponse = getBalanceByEscrowSeq(escrowSeq);
 
         BalanceRequest request = new BalanceRequest(projectId, balanceResponse.getBalance());
         balanceClient.sendBalance(request);
-
-        return balanceResponse;
     }
 
     //escrowSeq로 projectId 찾기

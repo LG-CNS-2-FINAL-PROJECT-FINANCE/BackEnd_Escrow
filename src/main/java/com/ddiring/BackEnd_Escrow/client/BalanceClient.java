@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = "balanceClient", url = "${external.balance-service.url}")
 public interface BalanceClient {
-    @PostMapping("api/balance")
+    @PostMapping("/api/balance")
     void sendBalance(@RequestBody BalanceRequest request);
 }
