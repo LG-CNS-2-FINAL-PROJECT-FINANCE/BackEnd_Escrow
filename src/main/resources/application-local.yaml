@@ -20,8 +20,3 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MariaDBDialect
-
-#send balance to market service
-external:
-  balance-service:
-    url: http://localhost:8083
