@@ -4,8 +4,3 @@ spring:
   cloud:
     compatibility-verifier:
       enabled: false
-
-#send balance to market service
-external:
-  balance-service:
-    url: http://localhost:8083
