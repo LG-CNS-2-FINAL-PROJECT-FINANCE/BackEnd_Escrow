@@ -66,7 +66,7 @@ pipeline {
                 sh "echo Image pushing to local registry..."
                 sh "podman push ${DOCKER_IMAGE_NAME}"
                 // 로컬 이미지 제거
-                sh "podman rmi -f ${DOCKER_IMAGE_NAME} || true"
+                // sh "podman rmi -f ${DOCKER_IMAGE_NAME} || true"
             }
         }
 
