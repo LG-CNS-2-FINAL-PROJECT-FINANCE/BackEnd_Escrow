@@ -4,6 +4,3 @@ spring:
   cloud:
     compatibility-verifier:
       enabled: false
-
-  profiles:
-    active: local
