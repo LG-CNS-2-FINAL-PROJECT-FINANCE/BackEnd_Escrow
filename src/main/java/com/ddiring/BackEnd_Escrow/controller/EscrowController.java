@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/escrow")
+@RequestMapping("/api/escrow")
 public class EscrowController {
     private final EscrowService escrowService;
 

@@ -87,8 +87,8 @@ public class RecordService {
 
         recordRepository.save(record);
 
-        //입금일 때 Product 서비스에 잔액 보내기
-        if (flow == 1) {
+        //투자 입금일 때만 Product 서비스에 잔액 보내기
+        if (transType == TransType.INVESTMENT && flow == 1) {
             String projectId = escrow.getProjectId();
             sendBalanceToOtherService(projectId);
         }
@@ -108,6 +108,7 @@ public class RecordService {
         }
 
         return switch (transType) {
+            case REFUND -> 0;      // 환불: 출금
             case INVESTMENT -> 1;   // 투자: 입금
             case TRADE -> 0;        // 거래: 출금
             case DISTRIBUTED -> 0;  // 분배: 출금
@@ -153,4 +154,5 @@ public class RecordService {
         }
         return escrowSeq;
     }
+
 }

@@ -67,4 +67,5 @@ public class EscrowService {
         int randomPart = new Random().nextInt(900000) + 100000; //6자리 난수
         return datePart + randomPart; //ex) 20250730123456 (14자리)
     }
+
 }

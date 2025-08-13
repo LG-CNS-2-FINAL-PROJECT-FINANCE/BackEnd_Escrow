@@ -1,6 +1,7 @@
 package com.ddiring.BackEnd_Escrow.enums;
 
 public enum TransType {
+    REFUND(-1),         //환불
     INVESTMENT(0),      //투자
     TRADE(1),           //거래
     DISTRIBUTED(2);     //분배

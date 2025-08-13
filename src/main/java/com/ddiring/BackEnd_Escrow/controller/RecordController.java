@@ -4,6 +4,7 @@ import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
 import com.ddiring.BackEnd_Escrow.dto.response.BalanceResponse;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
 import com.ddiring.BackEnd_Escrow.service.RecordService;
+import feign.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/escrow")
+@RequestMapping("/api/escrow")
 public class RecordController {
     private final RecordService recordService;
 
@@ -20,14 +21,21 @@ public class RecordController {
     public ResponseEntity<?> deposit(@RequestBody SaveRecordRequest saveRecordRequest) {
         recordService.saveRecord(saveRecordRequest);
 
-        return  ResponseEntity.ok("입금 성공");
+        return ResponseEntity.ok("입금 성공");
     }
 
     @PostMapping("/withdraw")
     public ResponseEntity<?> withdraw(@RequestBody SaveRecordRequest saveRecordRequest) {
         recordService.saveRecord(saveRecordRequest);
 
-        return  ResponseEntity.ok("출금 성공");
+        return ResponseEntity.ok("출금 성공");
+    }
+
+    @PostMapping("/refund")
+    public ResponseEntity<?> refund(@RequestBody SaveRecordRequest saveRecordRequest) {
+        recordService.saveRecord(saveRecordRequest);
+
+        return ResponseEntity.ok("환불 성공");
     }
 
     @GetMapping("/{escrowSeq}/history")
