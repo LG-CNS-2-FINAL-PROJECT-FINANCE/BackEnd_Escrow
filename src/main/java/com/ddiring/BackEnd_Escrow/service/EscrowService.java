@@ -46,11 +46,12 @@ public class EscrowService {
             throw new ApplicationException(ErrorCode.DUPLICATE_ACCOUNT);
         }
 
-        notificationProducer.sendNotification(
-                List.of(1, 2, 3, 4, 5),
-                NotificationType.INFORMATION.name(),
-                "계좌가 생성되었습니다: " + accountNumber
-        );
+//        //test
+//        notificationProducer.sendNotification(
+//                List.of(1, 2, 3, 4, 5),
+//                NotificationType.INFORMATION.name(),
+//                "계좌가 생성되었습니다: " + accountNumber
+//        );
 
         return CreateAccountResponse.fromEntity(escrow);
     }
