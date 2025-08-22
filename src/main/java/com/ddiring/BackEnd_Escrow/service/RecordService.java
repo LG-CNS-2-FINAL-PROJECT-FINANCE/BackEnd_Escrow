@@ -13,6 +13,7 @@ import com.ddiring.BackEnd_Escrow.enums.EscrowStatus;
 import com.ddiring.BackEnd_Escrow.enums.TransType;
 import com.ddiring.BackEnd_Escrow.repository.EscrowRepository;
 import com.ddiring.BackEnd_Escrow.repository.RecordRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ public class RecordService {
 
     //거래내역 조회
     public List<HistoryResponse> getRecordsByEscrowSeq(Integer escrowSeq) {
-        List<Record> records = recordRepository.findAllByEscrowSeq(escrowSeq);
+        List<Record> records = recordRepository.findAllByEscrow_EscrowSeq(escrowSeq);
         if (records == null || records.isEmpty()) {
             throw new ApplicationException(ErrorCode.ESCROW_HISTORY_NOT_FOUND);
         }
@@ -53,6 +54,7 @@ public class RecordService {
     }
 
     //거래내역 저장
+    @Transactional
     public void saveRecord(SaveRecordRequest saveRecordRequest) {
         Escrow escrow = getEscrow(saveRecordRequest.getEscrowSeq());
 
@@ -70,7 +72,7 @@ public class RecordService {
         }
 
         Record record = Record.builder()
-                .escrowSeq(saveRecordRequest.getEscrowSeq())
+                .escrow(escrow)
                 .userSeq(saveRecordRequest.getUserSeq())
                 .transSeq(saveRecordRequest.getTransSeq())
                 .transType(transType)

@@ -4,7 +4,10 @@ import com.ddiring.BackEnd_Escrow.common.exception.ApplicationException;
 import com.ddiring.BackEnd_Escrow.common.exception.ErrorCode;
 import com.ddiring.BackEnd_Escrow.dto.response.CreateAccountResponse;
 import com.ddiring.BackEnd_Escrow.entity.Escrow;
+import com.ddiring.BackEnd_Escrow.enums.NotificationType;
+import com.ddiring.BackEnd_Escrow.kafka.NotificationProducer;
 import com.ddiring.BackEnd_Escrow.repository.EscrowRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -13,13 +16,16 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Random;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class EscrowService {
     private final EscrowRepository escrowRepository;
+    private final NotificationProducer notificationProducer;
 
     //에스크로 계좌 생성
     public CreateAccountResponse createAccount(String projectId) {
@@ -39,6 +45,12 @@ public class EscrowService {
         } catch (DataIntegrityViolationException e) {
             throw new ApplicationException(ErrorCode.DUPLICATE_ACCOUNT);
         }
+
+        notificationProducer.sendNotification(
+                List.of(1, 2, 3, 4, 5),
+                NotificationType.INFORMATION.name(),
+                "계좌가 생성되었습니다: " + accountNumber
+        );
 
         return CreateAccountResponse.fromEntity(escrow);
     }

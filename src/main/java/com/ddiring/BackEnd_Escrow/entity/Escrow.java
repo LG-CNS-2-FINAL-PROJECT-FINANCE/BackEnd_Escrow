@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "escrow")
@@ -20,6 +22,9 @@ public class Escrow {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "escrow_seq", nullable = false)
     private Integer escrowSeq;
+
+    @OneToMany(mappedBy = "escrow")
+    private List<Record> records = new ArrayList<>();
 
     //프로젝트 번호
     @Column(name = "project_id", nullable = false)

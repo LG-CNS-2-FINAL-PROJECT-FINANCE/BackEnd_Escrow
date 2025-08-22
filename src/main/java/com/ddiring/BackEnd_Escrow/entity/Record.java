@@ -27,8 +27,9 @@ public class Record {
     private Integer recordSeq;
 
     //에스크로 번호
-    @Column(name = "escrow_seq", nullable = false)
-    private Integer escrowSeq;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "escrow_seq", nullable = false)
+    private Escrow escrow;
 
     //사용자 번호
     @Column(name = "user_seq", nullable = false)

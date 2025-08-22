@@ -11,17 +11,14 @@ import java.util.List;
 
 @Repository
 public interface RecordRepository extends JpaRepository<Record, Integer> {
-    List<Record> findAllByEscrowSeq(Integer escrowSeq);
+    List<Record> findAllByEscrow_EscrowSeq(Integer escrowSeq);
 
     @Query("""
         SELECT COALESCE(SUM(
-            CASE 
-                WHEN r.flow = 1 THEN r.amount 
-                ELSE -r.amount 
-            END
+            CASE WHEN r.flow = 1 THEN r.amount ELSE -r.amount END
         ), 0)
         FROM Record r
-        WHERE r.escrowSeq = :escrowSeq
+        WHERE r.escrow.escrowSeq = :escrowSeq
           AND r.escrowStatus = com.ddiring.BackEnd_Escrow.enums.EscrowStatus.COMPLETED
     """)
     BigDecimal findBalanceByEscrowSeq(@Param("escrowSeq") Integer escrowSeq);

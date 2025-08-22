@@ -1,6 +1,3 @@
 spring:
   application:
     name: BackEnd_Escrow
-  cloud:
-    compatibility-verifier:
-      enabled: false
