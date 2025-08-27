@@ -121,10 +121,10 @@ public class RecordService {
 
         recordRepository.save(record); // DB에 insert
 
-//        //투자 입금이면 Product 서비스에 잔액 전송
-//        if (transType == TransType.INVESTMENT && flow == 1) {
-//            sendBalanceToOtherService(escrow.getProjectId());
-//        }
+        //투자 입금이면 Product 서비스에 잔액 전송
+        if (transType == TransType.INVESTMENT && flow == 1) {
+            sendBalanceToOtherService(escrow.getProjectId());
+        }
     }
 
     //투자 상품 계좌 조회
