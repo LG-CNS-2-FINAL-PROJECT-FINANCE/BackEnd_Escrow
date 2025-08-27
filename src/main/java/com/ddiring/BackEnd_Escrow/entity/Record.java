@@ -46,7 +46,7 @@ public class Record {
 
     //금액
     @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
+    private Integer amount;
 
     //입출금 out = 0, in = 1
     @Column(name = "flow", nullable = false)
@@ -66,7 +66,7 @@ public class Record {
     private LocalDateTime completedAt;
 
     //생성자
-    @Column(name = "created_id", nullable = false, length = 20)
+    @Column(name = "created_id", nullable = false)
     private String createdId;
 
     //생성일자
@@ -74,7 +74,7 @@ public class Record {
     private LocalDateTime createdAt;
 
     //수정자
-    @Column(name = "updated_id", nullable = false, length = 20)
+    @Column(name = "updated_id", nullable = false)
     private String updatedId;
 
     //수정일자

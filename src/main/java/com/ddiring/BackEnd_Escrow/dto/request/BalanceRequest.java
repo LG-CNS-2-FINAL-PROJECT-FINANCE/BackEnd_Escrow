@@ -11,5 +11,5 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class BalanceRequest {
     private String projectId;
-    private BigDecimal balance;
+    private Integer balance;
 }

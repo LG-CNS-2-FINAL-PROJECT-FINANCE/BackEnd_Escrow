@@ -15,5 +15,5 @@ public class SaveRecordRequest {
     private String userSeq;
     private Integer transSeq;
     private Integer transType;
-    private BigDecimal amount;
+    private Integer amount;
 }

@@ -12,10 +12,6 @@ import java.util.List;
 
 @Repository
 public interface RecordRepository extends JpaRepository<Record, Integer> {
-
-    //Escrow 엔티티 내부의 escrowSeq로 조회
-    List<Record> findAllByEscrow_EscrowSeq(Integer escrowSeq);
-
     //또는 Escrow 객체 자체로도 조회 가능
     List<Record> findAllByEscrow(Escrow escrow);
 
@@ -27,5 +23,5 @@ public interface RecordRepository extends JpaRepository<Record, Integer> {
         WHERE r.escrow.escrowSeq = :escrowSeq
           AND r.escrowStatus = com.ddiring.BackEnd_Escrow.enums.EscrowStatus.COMPLETED
     """)
-    BigDecimal findBalanceByEscrowSeq(@Param("escrowSeq") Integer escrowSeq);
+    Integer findBalanceByEscrowSeq(@Param("escrowSeq") Integer escrowSeq);
 }

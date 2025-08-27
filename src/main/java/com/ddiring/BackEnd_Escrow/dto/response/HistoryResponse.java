@@ -20,7 +20,7 @@ public class HistoryResponse {
     private String userSeq;             //사용자번호
     private Integer transSeq;           //주문번호
     private TransType transType;        //주문종류 enum
-    private BigDecimal amount;          //금액
+    private Integer amount;             //금액
     private Integer flow;               //입출금 out = 0, in = 1
     private EscrowStatus escrowStatus;  //에스크로 상태 enum
     private LocalDateTime initiatedAt;  //주문발생시간

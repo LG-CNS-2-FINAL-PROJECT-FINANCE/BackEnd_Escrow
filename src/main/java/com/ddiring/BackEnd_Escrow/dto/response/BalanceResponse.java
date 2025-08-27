@@ -11,5 +11,5 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class BalanceResponse {
     private String projectId;    //프로젝트 ID
-    private BigDecimal balance;  //잔액
+    private Integer balance;  //잔액
 }

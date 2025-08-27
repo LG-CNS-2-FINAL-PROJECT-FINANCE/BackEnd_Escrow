@@ -48,7 +48,7 @@ public class RecordService {
     public BalanceResponse getBalance(String account, String projectId) {
         Integer escrowSeq = getEscrowSeq(account, projectId);
 
-        BigDecimal balance = recordRepository.findBalanceByEscrowSeq(escrowSeq);
+        Integer balance = recordRepository.findBalanceByEscrowSeq(escrowSeq);
         if (balance == null) {
             throw new ApplicationException(ErrorCode.ESCROW_BALANCE_NOT_FOUND);
         }
@@ -90,7 +90,7 @@ public class RecordService {
 
         LocalDateTime now = LocalDateTime.now();
         String userSeq = saveRecordRequest.getUserSeq();
-        BigDecimal amount = saveRecordRequest.getAmount();
+        Integer amount = saveRecordRequest.getAmount();
 
         //금액 유효성 체크
         validatePositiveAmount(amount, flow == 0
@@ -121,10 +121,10 @@ public class RecordService {
 
         recordRepository.save(record); // DB에 insert
 
-        //투자 입금이면 Product 서비스에 잔액 전송
-        if (transType == TransType.INVESTMENT && flow == 1) {
-            sendBalanceToOtherService(escrow.getProjectId());
-        }
+//        //투자 입금이면 Product 서비스에 잔액 전송
+//        if (transType == TransType.INVESTMENT && flow == 1) {
+//            sendBalanceToOtherService(escrow.getProjectId());
+//        }
     }
 
     //투자 상품 계좌 조회
@@ -140,25 +140,27 @@ public class RecordService {
         }
 
         return switch (transType) {
-            case REFUND, TRADE, DISTRIBUTED -> 0; //출금
-            case INVESTMENT -> 1;                 //입금
+            case REFUND, TRADEOUT, DISTRIBUTED -> 0; //출금
+            case INVESTMENT, TRADEIN -> 1;                 //입금
         };
     }
 
     //금액 유효성 체크 (공통)
-    private void validatePositiveAmount(BigDecimal amount, String message) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+    private void validatePositiveAmount(Integer amount, String message) {
+        if (amount == null || amount <= 0) {
             throw new ApplicationException(ErrorCode.INVALID_PARAMETER, message);
         }
     }
 
     //출금 검증
-    private void validateWithdraw(String account, BigDecimal amount) {
-        BigDecimal balance = getBalance(account, null).getBalance();
-        if (balance.compareTo(amount) < 0) {
+    private void validateWithdraw(String account, Integer amount) {
+        Integer balance = getBalance(account, null).getBalance();
+
+        if (balance == null || balance < amount) {
             throw new ApplicationException(ErrorCode.INSUFFICIENT_BALANCE);
         }
     }
+
 
     //Product 서비스에 잔액 전달
     public void sendBalanceToOtherService(String projectId) {

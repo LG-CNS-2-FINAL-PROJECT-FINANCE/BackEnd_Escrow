@@ -31,11 +31,11 @@ public class Escrow {
     private String projectId;
 
     //에스크로 계좌
-    @Column(name = "account", nullable = false, length = 50)
+    @Column(name = "account", nullable = false)
     private String account;
 
     //생성자
-    @Column(name = "created_id", nullable = false, length = 20)
+    @Column(name = "created_id", nullable = false)
     private String createdId;
 
     //생성일자
@@ -43,7 +43,7 @@ public class Escrow {
     private LocalDateTime createdAt;
 
     //수정자
-    @Column(name = "updated_id", nullable = false, length = 20)
+    @Column(name = "updated_id", nullable = false)
     private String updatedId;
 
     //수정일자
