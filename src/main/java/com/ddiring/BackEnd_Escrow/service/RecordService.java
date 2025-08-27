@@ -28,55 +28,87 @@ public class RecordService {
     private final RecordRepository recordRepository;
     private final BalanceClient balanceClient;
 
-    //거래내역 조회
-    public List<HistoryResponse> getRecordsByEscrowSeq(Integer escrowSeq) {
-        List<Record> records = recordRepository.findAllByEscrow_EscrowSeq(escrowSeq);
-        if (records == null || records.isEmpty()) {
+    //거래내역 조회 (projectId)
+    public List<HistoryResponse> getRecordsByProjectId(String projectId) {
+        Escrow escrow = escrowRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.ESCROW_NOT_FOUND));
+
+        List<Record> records = recordRepository.findAllByEscrow(escrow);
+
+        if (records.isEmpty()) {
             throw new ApplicationException(ErrorCode.ESCROW_HISTORY_NOT_FOUND);
         }
-        return records.stream().map(HistoryResponse::fromEntity).toList();
+
+        return records.stream()
+                .map(HistoryResponse::fromEntity)
+                .toList();
     }
 
-    //잔액 조회(EscrowSeq)
-    public BalanceResponse getBalanceByEscrowSeq(Integer escrowSeq) {
-        //에스크로 계좌 유무 체크
-        boolean exists = escrowRepository.existsByEscrowSeq(escrowSeq);
-        if (!exists) {
-            throw new ApplicationException(ErrorCode.ESCROW_NOT_FOUND);
-        }
+    //잔액 조회
+    public BalanceResponse getBalance(String account, String projectId) {
+        Integer escrowSeq = getEscrowSeq(account, projectId);
 
         BigDecimal balance = recordRepository.findBalanceByEscrowSeq(escrowSeq);
         if (balance == null) {
             throw new ApplicationException(ErrorCode.ESCROW_BALANCE_NOT_FOUND);
         }
 
-        return new BalanceResponse(escrowSeq, balance);
+        String responseProjectId = projectId;
+        if (responseProjectId == null && account != null) {
+            responseProjectId = escrowRepository.findByAccount(account)
+                    .map(Escrow::getProjectId)
+                    .orElseThrow(() -> new ApplicationException(ErrorCode.ESCROW_NOT_FOUND));
+        }
+
+        return new BalanceResponse(responseProjectId, balance);
+    }
+
+    //escrowSeq 조회 (account 또는 projectId)
+    private Integer getEscrowSeq(String account, String projectId) {
+        if (account != null) {
+            return escrowRepository.findEscrowSeqByAccount(account)
+                    .orElseThrow(() -> new ApplicationException(ErrorCode.ESCROW_NOT_FOUND));
+        }
+
+        if (projectId != null) {
+            return escrowRepository.findEscrowSeqByProjectId(projectId)
+                    .orElseThrow(() -> new ApplicationException(ErrorCode.ESCROW_NOT_FOUND));
+        }
+
+        throw new IllegalArgumentException("account 또는 projectId 중 하나는 반드시 필요합니다.");
     }
 
     //거래내역 저장
     @Transactional
     public void saveRecord(SaveRecordRequest saveRecordRequest) {
-        Escrow escrow = getEscrow(saveRecordRequest.getEscrowSeq());
+        //account로 Escrow 조회
+        Escrow escrow = getEscrow(saveRecordRequest.getAccount());
 
+        //TransType 변환
         TransType transType = TransType.fromCode(saveRecordRequest.getTransType());
         int flow = getFlowByTransType(transType);
 
         LocalDateTime now = LocalDateTime.now();
-        String userSeq = saveRecordRequest.getUserSeq().toString();
-
+        String userSeq = saveRecordRequest.getUserSeq();
         BigDecimal amount = saveRecordRequest.getAmount();
-        if (flow == 0) {    //출금
-            validateWithdraw(saveRecordRequest.getEscrowSeq(), amount);
-        } else {            //입금
-            validateDeposit(amount);
+
+        //금액 유효성 체크
+        validatePositiveAmount(amount, flow == 0
+                ? ErrorCode.WITHDRAW_AMOUNT_INVALID.defaultMessage()
+                : ErrorCode.DEPOSIT_AMOUNT_INVALID.defaultMessage());
+
+        //출금일 경우 잔액 체크
+        if (flow == 0) {
+            validateWithdraw(saveRecordRequest.getAccount(), amount);
         }
 
+        //Record 생성
         Record record = Record.builder()
-                .escrow(escrow)
-                .userSeq(saveRecordRequest.getUserSeq())
+                .escrow(escrow) //account로 조회한 Escrow
+                .userSeq(userSeq)
                 .transSeq(saveRecordRequest.getTransSeq())
                 .transType(transType)
-                .amount(saveRecordRequest.getAmount())
+                .amount(amount)
                 .flow(flow)
                 .escrowStatus(EscrowStatus.COMPLETED)
                 .initiatedAt(now)
@@ -87,74 +119,51 @@ public class RecordService {
                 .updatedAt(now)
                 .build();
 
-        recordRepository.save(record);
+        recordRepository.save(record); // DB에 insert
 
-        //투자 입금일 때만 Product 서비스에 잔액 보내기
+        //투자 입금이면 Product 서비스에 잔액 전송
         if (transType == TransType.INVESTMENT && flow == 1) {
-            String projectId = escrow.getProjectId();
-            sendBalanceToOtherService(projectId);
+            sendBalanceToOtherService(escrow.getProjectId());
         }
-
     }
 
-    //투자 상품 계좌 체크
-    private Escrow getEscrow(int escrowSeq) {
-        return escrowRepository.findByEscrowSeq(escrowSeq)
+    //투자 상품 계좌 조회
+    private Escrow getEscrow(String account) {
+        return escrowRepository.findByAccount(account)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.ESCROW_NOT_FOUND));
     }
 
-    //TransType에 따른 입출금 구분
+    //TransType에 따른 입출금 플로우
     private int getFlowByTransType(TransType transType) {
         if (transType == null) {
             throw new ApplicationException(ErrorCode.INVALID_TRANS_TYPE);
         }
 
         return switch (transType) {
-            case REFUND -> 0;      // 환불: 출금
-            case INVESTMENT -> 1;   // 투자: 입금
-            case TRADE -> 0;        // 거래: 출금
-            case DISTRIBUTED -> 0;  // 분배: 출금
+            case REFUND, TRADE, DISTRIBUTED -> 0; //출금
+            case INVESTMENT -> 1;                 //입금
         };
     }
 
-    //입금 전 잔액 조회
-    private void validateDeposit(BigDecimal amount) {
-        validatePositiveAmount(amount, ErrorCode.DEPOSIT_AMOUNT_INVALID.defaultMessage());
-    }
-
-    //출금 전 잔액 조회
-    private void validateWithdraw(Integer escrowSeq, BigDecimal amount) {
-        validatePositiveAmount(amount, ErrorCode.WITHDRAW_AMOUNT_INVALID.defaultMessage());
-
-        BigDecimal balance = getBalanceByEscrowSeq(escrowSeq).getBalance();
-        if (balance.compareTo(amount) < 0) {
-            throw new ApplicationException(ErrorCode.INSUFFICIENT_BALANCE);
-        }
-    }
-
-    //입출금 금액 체크
+    //금액 유효성 체크 (공통)
     private void validatePositiveAmount(BigDecimal amount, String message) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ApplicationException(ErrorCode.INVALID_PARAMETER, message);
         }
     }
 
-    //Product 서비스에 잔액 보내기
-    public void sendBalanceToOtherService(String projectId) {
-        Integer escrowSeq = findEscrowSeqByProjectId(projectId);
-        BalanceResponse balanceResponse = getBalanceByEscrowSeq(escrowSeq);
+    //출금 검증
+    private void validateWithdraw(String account, BigDecimal amount) {
+        BigDecimal balance = getBalance(account, null).getBalance();
+        if (balance.compareTo(amount) < 0) {
+            throw new ApplicationException(ErrorCode.INSUFFICIENT_BALANCE);
+        }
+    }
 
+    //Product 서비스에 잔액 전달
+    public void sendBalanceToOtherService(String projectId) {
+        BalanceResponse balanceResponse = getBalance(null, projectId);
         BalanceRequest request = new BalanceRequest(projectId, balanceResponse.getBalance());
         balanceClient.sendBalance(request);
     }
-
-    //escrowSeq로 projectId 찾기
-    private Integer findEscrowSeqByProjectId(String projectId) {
-        Integer escrowSeq = escrowRepository.findEscrowSeqByProjectId(projectId);
-        if (escrowSeq == null) {
-            throw new ApplicationException(ErrorCode.ESCROW_NOT_FOUND);
-        }
-        return escrowSeq;
-    }
-
 }

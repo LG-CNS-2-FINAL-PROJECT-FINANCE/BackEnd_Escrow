@@ -4,7 +4,6 @@ import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
 import com.ddiring.BackEnd_Escrow.dto.response.BalanceResponse;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
 import com.ddiring.BackEnd_Escrow.service.RecordService;
-import feign.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,39 +14,36 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/escrow")
 public class RecordController {
+
     private final RecordService recordService;
 
     @PostMapping("/deposit")
-    public ResponseEntity<?> deposit(@RequestBody SaveRecordRequest saveRecordRequest) {
-        recordService.saveRecord(saveRecordRequest);
-
-        return ResponseEntity.ok("입금 성공");
+    public ResponseEntity<String> deposit(@RequestBody SaveRecordRequest request) {
+        recordService.saveRecord(request);
+        return ResponseEntity.ok().body("입금 성공");
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withdraw(@RequestBody SaveRecordRequest saveRecordRequest) {
-        recordService.saveRecord(saveRecordRequest);
-
-        return ResponseEntity.ok("출금 성공");
+    public ResponseEntity<String> withdraw(@RequestBody SaveRecordRequest request) {
+        recordService.saveRecord(request);
+        return ResponseEntity.ok().body("출금 성공");
     }
 
     @PostMapping("/refund")
-    public ResponseEntity<?> refund(@RequestBody SaveRecordRequest saveRecordRequest) {
-        recordService.saveRecord(saveRecordRequest);
-
-        return ResponseEntity.ok("환불 성공");
+    public ResponseEntity<String> refund(@RequestBody SaveRecordRequest request) {
+        recordService.saveRecord(request);
+        return ResponseEntity.ok().body("환불 성공");
     }
 
-    @GetMapping("/{escrowSeq}/history")
-    public ResponseEntity<List<HistoryResponse>> getRecord(@PathVariable("escrowSeq") Integer escrowSeq) {
-        List<HistoryResponse> response = recordService.getRecordsByEscrowSeq(escrowSeq);
+    @GetMapping("/{projectId}/history")
+    public ResponseEntity<List<HistoryResponse>> getHistory(@PathVariable String projectId) {
+        List<HistoryResponse> response = recordService.getRecordsByProjectId(projectId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{escrowSeq}/balance")
-    public ResponseEntity<BalanceResponse> getBalance(@PathVariable("escrowSeq") Integer escrowSeq) {
-       BalanceResponse response = recordService.getBalanceByEscrowSeq(escrowSeq);
+    @GetMapping("/{projectId}/balance")
+    public ResponseEntity<BalanceResponse> getBalance(@PathVariable String projectId) {
+        BalanceResponse response = recordService.getBalance(null, projectId);
         return ResponseEntity.ok(response);
     }
-
 }

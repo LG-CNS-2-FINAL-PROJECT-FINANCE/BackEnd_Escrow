@@ -29,8 +29,14 @@ public class EscrowService {
 
     //에스크로 계좌 생성
     public CreateAccountResponse createAccount(String projectId) {
-        String accountNumber = generateUniqueAccountNumber();
+        //이미 계좌가 존재하면 조회만 하고 새로 만들지 않음
+        Escrow existing = escrowRepository.findByProjectId(projectId).orElse(null);
+        if (existing != null) {
+            return CreateAccountResponse.fromEntity(existing);
+        }
 
+        //없으면 새로 생성
+        String accountNumber = generateUniqueAccountNumber();
         Escrow escrow = Escrow.builder()
                 .projectId(projectId)
                 .account(accountNumber)
@@ -39,16 +45,12 @@ public class EscrowService {
                 .updatedId("admin")
                 .updatedAt(LocalDateTime.now())
                 .build();
-
-        try {
-            escrowRepository.save(escrow);
-        } catch (DataIntegrityViolationException e) {
-            throw new ApplicationException(ErrorCode.DUPLICATE_ACCOUNT);
-        }
+        escrowRepository.save(escrow);
 
 //        //test
 //        notificationProducer.sendNotification(
-//                List.of(1, 2, 3, 4, 5),
+//                //List.of("1", "2", "3", "4", "5"),
+//                List.of("1"),
 //                NotificationType.INFORMATION.name(),
 //                "계좌가 생성되었습니다: " + accountNumber
 //        );

@@ -6,15 +6,23 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface EscrowRepository extends JpaRepository<Escrow, Integer> {
-    Optional<Escrow> findByEscrowSeq(Integer escrowSeq);
-    boolean existsByEscrowSeq(Integer escrowSeq);
+
+    Optional<Escrow> findByAccount(String account);
+
+    Optional<Escrow> findByProjectId(String projectId);
+
     boolean existsByAccount(String account);
 
-    @Query("select e.escrowSeq from Escrow e where e.projectId = :projectId")
-    Integer findEscrowSeqByProjectId(@Param("projectId") String projectId);
+    boolean existsByProjectId(String projectId);
+
+    // escrowSeq만 조회할 때
+    @Query("SELECT e.escrowSeq FROM Escrow e WHERE e.projectId = :projectId")
+    Optional<Integer> findEscrowSeqByProjectId(@Param("projectId") String projectId);
+
+    @Query("SELECT e.escrowSeq FROM Escrow e WHERE e.account = :account")
+    Optional<Integer> findEscrowSeqByAccount(@Param("account") String account);
 }

@@ -11,9 +11,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SaveRecordRequest {
-    private Integer escrowSeq;
-    private Integer userSeq;
-    private BigDecimal amount;
+    private String account;
+    private String userSeq;
     private Integer transSeq;
     private Integer transType;
+    private BigDecimal amount;
 }

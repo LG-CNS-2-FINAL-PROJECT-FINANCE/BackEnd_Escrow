@@ -10,6 +10,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BalanceResponse {
-    private Integer escrowSeq;  //에스크로 번호
+    private String projectId;    //프로젝트 ID
     private BigDecimal balance;  //잔액
 }

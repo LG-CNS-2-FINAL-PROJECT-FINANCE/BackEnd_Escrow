@@ -33,7 +33,7 @@ public class Record {
 
     //사용자 번호
     @Column(name = "user_seq", nullable = false)
-    private Integer userSeq;
+    private String userSeq;
 
     //주문 번호
     @Column(name = "trans_seq")

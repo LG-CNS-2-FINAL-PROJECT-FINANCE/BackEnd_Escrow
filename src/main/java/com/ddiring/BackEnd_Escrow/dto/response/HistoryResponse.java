@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 public class HistoryResponse {
     private Integer recordSeq;          //기록번호
-    private Integer userSeq;            //사용자번호
+    private String userSeq;             //사용자번호
     private Integer transSeq;           //주문번호
     private TransType transType;        //주문종류 enum
     private BigDecimal amount;          //금액

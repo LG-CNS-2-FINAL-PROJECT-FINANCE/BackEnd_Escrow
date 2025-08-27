@@ -9,5 +9,4 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateAccountRequest {
     private String projectId;
-    //private String userSeq;
 }

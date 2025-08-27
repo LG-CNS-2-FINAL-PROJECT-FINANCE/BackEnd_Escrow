@@ -18,15 +18,15 @@ public class NotificationProducer {
     private static final String TOPIC = "notification-topic";
 
     //단일 사용자 알림 전송 (단일도 List.of 처리)
-    public void sendNotification(Integer userSeq, String notificationType, String message) {
+    public void sendNotification(String userSeq, String notificationType, String message) {
         sendNotification(List.of(userSeq), notificationType, message);
     }
 
     //다중 사용자 알림 전송
-    public void sendNotification(List<Integer> userSeqs, String notificationType, String message) {
+    public void sendNotification(List<String> userSeq, String notificationType, String message) {
         try {
             NotificationPayload payload = NotificationPayload.builder()
-                    .userSeqs(userSeqs)
+                    .userSeqs(userSeq)
                     .notificationType(notificationType)
                     .message(message)
                     .build();
