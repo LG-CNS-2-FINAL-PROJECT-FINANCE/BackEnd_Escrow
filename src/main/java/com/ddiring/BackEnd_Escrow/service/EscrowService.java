@@ -5,19 +5,25 @@ import com.ddiring.BackEnd_Escrow.common.exception.ErrorCode;
 import com.ddiring.BackEnd_Escrow.dto.response.CreateAccountResponse;
 import com.ddiring.BackEnd_Escrow.entity.Escrow;
 import com.ddiring.BackEnd_Escrow.enums.NotificationType;
+import com.ddiring.BackEnd_Escrow.kafka.EventEnvelope;
+import com.ddiring.BackEnd_Escrow.kafka.NotificationPayload;
 import com.ddiring.BackEnd_Escrow.kafka.NotificationProducer;
 import com.ddiring.BackEnd_Escrow.repository.EscrowRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -26,6 +32,8 @@ import java.util.Random;
 public class EscrowService {
     private final EscrowRepository escrowRepository;
     private final NotificationProducer notificationProducer;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
     //에스크로 계좌 생성
     public CreateAccountResponse createAccount(String projectId) {
@@ -47,13 +55,15 @@ public class EscrowService {
                 .build();
         escrowRepository.save(escrow);
 
-//        //test
-//        notificationProducer.sendNotification(
-//                //List.of("1", "2", "3", "4", "5"),
-//                List.of("1"),
-//                NotificationType.INFORMATION.name(),
-//                "계좌가 생성되었습니다: " + accountNumber
-//        );
+        //test
+        notificationProducer.sendNotification(
+                //List.of("1", "2", "3", "4", "5"),
+                //List.of("21be0bd8-f9f0-4d05-b385-4cb419d553a4"),
+                List.of("21be0bd8-f9f0-4d05-b385"),
+                NotificationType.INFORMATION.name(),
+                "에스크로 계좌 생성",
+                "에스크로 계좌가 생성되었습니다.: " + accountNumber
+        );
 
         return CreateAccountResponse.fromEntity(escrow);
     }

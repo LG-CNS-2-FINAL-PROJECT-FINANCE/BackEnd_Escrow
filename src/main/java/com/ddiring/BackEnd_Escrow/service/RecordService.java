@@ -119,7 +119,7 @@ public class RecordService {
                 .updatedAt(now)
                 .build();
 
-        recordRepository.save(record); // DB에 insert
+        recordRepository.save(record); //DB에 insert
 
         //투자 입금이면 Product 서비스에 잔액 전송
         if (transType == TransType.INVESTMENT && flow == 1) {

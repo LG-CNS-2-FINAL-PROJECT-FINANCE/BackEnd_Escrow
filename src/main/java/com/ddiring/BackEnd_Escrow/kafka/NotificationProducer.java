@@ -15,19 +15,20 @@ public class NotificationProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
-    private static final String TOPIC = "notification-topic";
+    private static final String TOPIC = "notification";
 
     //단일 사용자 알림 전송 (단일도 List.of 처리)
-    public void sendNotification(String userSeq, String notificationType, String message) {
-        sendNotification(List.of(userSeq), notificationType, message);
+    public void sendNotification(String userSeq, String notificationType, String title, String message) {
+        sendNotification(List.of(userSeq), notificationType, title, message);
     }
 
     //다중 사용자 알림 전송
-    public void sendNotification(List<String> userSeq, String notificationType, String message) {
+    public void sendNotification(List<String> userSeq, String notificationType, String title, String message) {
         try {
             NotificationPayload payload = NotificationPayload.builder()
-                    .userSeqs(userSeq)
+                    .userSeq(userSeq)
                     .notificationType(notificationType)
+                    .title(title)
                     .message(message)
                     .build();
 
