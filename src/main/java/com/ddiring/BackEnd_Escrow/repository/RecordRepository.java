@@ -2,6 +2,7 @@ package com.ddiring.BackEnd_Escrow.repository;
 
 import com.ddiring.BackEnd_Escrow.entity.Escrow;
 import com.ddiring.BackEnd_Escrow.entity.Record;
+import com.ddiring.BackEnd_Escrow.enums.TransType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +25,12 @@ public interface RecordRepository extends JpaRepository<Record, Integer> {
           AND r.escrowStatus = com.ddiring.BackEnd_Escrow.enums.EscrowStatus.COMPLETED
     """)
     Integer findBalanceByEscrowSeq(@Param("escrowSeq") Integer escrowSeq);
+
+    boolean existsByEscrow_AccountAndUserSeqAndTransTypeAndAmount(
+            String account,
+            String userSeq,
+            TransType transType,
+            Integer amount
+    );
+
 }

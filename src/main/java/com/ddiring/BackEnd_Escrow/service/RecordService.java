@@ -3,8 +3,10 @@ package com.ddiring.BackEnd_Escrow.service;
 import com.ddiring.BackEnd_Escrow.client.BalanceClient;
 import com.ddiring.BackEnd_Escrow.common.exception.ApplicationException;
 import com.ddiring.BackEnd_Escrow.common.exception.ErrorCode;
+import com.ddiring.BackEnd_Escrow.converter.TransTypeConverter;
 import com.ddiring.BackEnd_Escrow.dto.request.BalanceRequest;
 import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
+import com.ddiring.BackEnd_Escrow.dto.request.TransactionVerifyRequest;
 import com.ddiring.BackEnd_Escrow.dto.response.BalanceResponse;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
 import com.ddiring.BackEnd_Escrow.entity.Escrow;
@@ -17,7 +19,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -168,4 +169,16 @@ public class RecordService {
         BalanceRequest request = new BalanceRequest(projectId, balanceResponse.getBalance());
         balanceClient.sendBalance(request);
     }
+
+    public boolean verifyTransaction(TransactionVerifyRequest request) {
+        TransType type = TransType.fromCode(request.getTransType());
+
+        return recordRepository.existsByEscrow_AccountAndUserSeqAndTransTypeAndAmount(
+                request.getAccount(),
+                request.getUserSeq(),
+                type,
+                request.getAmount()
+        );
+    }
+
 }
