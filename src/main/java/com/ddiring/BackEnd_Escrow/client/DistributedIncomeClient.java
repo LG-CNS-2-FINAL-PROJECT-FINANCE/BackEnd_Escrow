@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = "distributedIncomeClient", url = "${external.product-service.url}")
 public interface DistributedIncomeClient {
-
     @PostMapping("/api/product/escrow/distribution")
     void notifyDistributedIncome(@RequestBody DistributedIncomeRequest request);
 }
