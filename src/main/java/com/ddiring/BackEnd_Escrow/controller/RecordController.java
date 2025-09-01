@@ -1,6 +1,6 @@
 package com.ddiring.BackEnd_Escrow.controller;
 
-import com.ddiring.BackEnd_Escrow.dto.request.TransactionVerifyRequest;
+import com.ddiring.BackEnd_Escrow.dto.request.DistributedIncomeRequest;
 import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
 import com.ddiring.BackEnd_Escrow.dto.response.BalanceResponse;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
@@ -48,9 +48,4 @@ public class RecordController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/transaction/verify")
-    public ResponseEntity<Boolean> verifyTransaction(@RequestBody TransactionVerifyRequest request) {
-        boolean verified = recordService.verifyTransaction(request);
-        return ResponseEntity.ok(verified);
-    }
 }

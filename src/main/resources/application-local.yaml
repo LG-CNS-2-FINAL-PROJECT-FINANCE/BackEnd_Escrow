@@ -23,5 +23,5 @@ spring:
 
 #send balance to product service
 external:
-  balance-service:
+  product-service:
     url: http://localhost:8083

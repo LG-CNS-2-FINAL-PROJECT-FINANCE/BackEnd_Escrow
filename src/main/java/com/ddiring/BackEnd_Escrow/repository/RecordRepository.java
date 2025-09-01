@@ -26,11 +26,16 @@ public interface RecordRepository extends JpaRepository<Record, Integer> {
     """)
     Integer findBalanceByEscrowSeq(@Param("escrowSeq") Integer escrowSeq);
 
-    boolean existsByEscrow_AccountAndUserSeqAndTransTypeAndAmount(
-            String account,
-            String userSeq,
-            TransType transType,
-            Integer amount
-    );
+    @Query("SELECT COALESCE(r.balance, 0) FROM Record r WHERE r.escrow.escrowSeq = :escrowSeq ORDER BY r.completedAt DESC")
+    Integer findLatestBalanceByEscrowSeq(@Param("escrowSeq") Integer escrowSeq);
+
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END " +
+            "FROM Record r WHERE r.escrow.account = :account " +
+            "AND r.userSeq = :userSeq " +
+            "AND r.amount = :distributionAmount " +
+            "AND r.transType = com.ddiring.BackEnd_Escrow.enums.TransType.DISTRIBUTEIN")
+    Boolean existsDistributedIncome(@Param("account") String account,
+                                    @Param("userSeq") String userSeq,
+                                    @Param("distributionAmount") Integer distributionAmount);
 
 }

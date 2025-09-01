@@ -5,7 +5,8 @@ public enum TransType {
     INVESTMENT(0),      //투자(1차 거래 입금)
     TRADEIN(1),         //2차 거래 입금
     TRADEOUT(2),        //2차 거래 출금
-    DISTRIBUTED(3);     //분배
+    DISTRIBUTEDOUT(3),  //분배금 출금
+    DISTRIBUTEIN(4);    //분배금 입금
 
     private final int code;
 

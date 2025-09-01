@@ -1,12 +1,12 @@
 package com.ddiring.BackEnd_Escrow.service;
 
 import com.ddiring.BackEnd_Escrow.client.BalanceClient;
+import com.ddiring.BackEnd_Escrow.client.DistributedIncomeClient;
 import com.ddiring.BackEnd_Escrow.common.exception.ApplicationException;
 import com.ddiring.BackEnd_Escrow.common.exception.ErrorCode;
-import com.ddiring.BackEnd_Escrow.converter.TransTypeConverter;
 import com.ddiring.BackEnd_Escrow.dto.request.BalanceRequest;
+import com.ddiring.BackEnd_Escrow.dto.request.DistributedIncomeRequest;
 import com.ddiring.BackEnd_Escrow.dto.request.SaveRecordRequest;
-import com.ddiring.BackEnd_Escrow.dto.request.TransactionVerifyRequest;
 import com.ddiring.BackEnd_Escrow.dto.response.BalanceResponse;
 import com.ddiring.BackEnd_Escrow.dto.response.HistoryResponse;
 import com.ddiring.BackEnd_Escrow.entity.Escrow;
@@ -28,6 +28,7 @@ public class RecordService {
     private final EscrowRepository escrowRepository;
     private final RecordRepository recordRepository;
     private final BalanceClient balanceClient;
+    private final DistributedIncomeClient distributedIncomeClient;
 
     //거래내역 조회 (projectId)
     public List<HistoryResponse> getRecordsByProjectId(String projectId) {
@@ -85,7 +86,7 @@ public class RecordService {
         //account로 Escrow 조회
         Escrow escrow = getEscrow(saveRecordRequest.getAccount());
 
-        //TransType 변환
+        //TransType 변환 및 flow 결정
         TransType transType = TransType.fromCode(saveRecordRequest.getTransType());
         int flow = getFlowByTransType(transType);
 
@@ -99,17 +100,24 @@ public class RecordService {
                 : ErrorCode.DEPOSIT_AMOUNT_INVALID.defaultMessage());
 
         //출금일 경우 잔액 체크
-        if (flow == 0) {
-            validateWithdraw(saveRecordRequest.getAccount(), amount);
+        Integer currentBalance = recordRepository.findLatestBalanceByEscrowSeq(escrow.getEscrowSeq());
+        if (currentBalance == null) currentBalance = 0;
+
+        if (flow == 0 && currentBalance < amount) {
+            throw new ApplicationException(ErrorCode.INSUFFICIENT_BALANCE);
         }
+
+        //새 잔액 계산
+        int newBalance = (flow == 1) ? currentBalance + amount : currentBalance - amount;
 
         //Record 생성
         Record record = Record.builder()
-                .escrow(escrow) //account로 조회한 Escrow
+                .escrow(escrow)
                 .userSeq(userSeq)
                 .transSeq(saveRecordRequest.getTransSeq())
                 .transType(transType)
                 .amount(amount)
+                .balance(newBalance)
                 .flow(flow)
                 .escrowStatus(EscrowStatus.COMPLETED)
                 .initiatedAt(now)
@@ -120,12 +128,23 @@ public class RecordService {
                 .updatedAt(now)
                 .build();
 
-        recordRepository.save(record); //DB에 insert
+        //DB 저장
+        recordRepository.save(record);
 
-        //투자 입금이면 Product 서비스에 잔액 전송
-        if (transType == TransType.INVESTMENT && flow == 1) {
-            sendBalanceToOtherService(escrow.getProjectId());
+        if (flow == 1) {
+            switch (transType) {
+                case INVESTMENT:
+                    //투자 입금: Product 서비스에 잔액 전송
+                    sendBalanceToOtherService(escrow.getProjectId());
+                    break;
+                case DISTRIBUTEIN:
+                    sendDistributedIncomeNotification(saveRecordRequest);
+                    break;
+                default:
+                    break;
+            }
         }
+
     }
 
     //투자 상품 계좌 조회
@@ -141,8 +160,8 @@ public class RecordService {
         }
 
         return switch (transType) {
-            case REFUND, TRADEOUT, DISTRIBUTED -> 0; //출금
-            case INVESTMENT, TRADEIN -> 1;                 //입금
+            case REFUND, TRADEOUT, DISTRIBUTEDOUT -> 0;     //출금
+            case INVESTMENT, TRADEIN, DISTRIBUTEIN  -> 1;   //입금
         };
     }
 
@@ -162,7 +181,6 @@ public class RecordService {
         }
     }
 
-
     //Product 서비스에 잔액 전달
     public void sendBalanceToOtherService(String projectId) {
         BalanceResponse balanceResponse = getBalance(null, projectId);
@@ -170,15 +188,14 @@ public class RecordService {
         balanceClient.sendBalance(request);
     }
 
-    public boolean verifyTransaction(TransactionVerifyRequest request) {
-        TransType type = TransType.fromCode(request.getTransType());
-
-        return recordRepository.existsByEscrow_AccountAndUserSeqAndTransTypeAndAmount(
-                request.getAccount(),
-                request.getUserSeq(),
-                type,
-                request.getAmount()
+    //Product 서비스에 분배금 입금 여부 전달(알림만)
+    public void sendDistributedIncomeNotification(SaveRecordRequest saveRecordRequest) {
+        DistributedIncomeRequest dto = new DistributedIncomeRequest(
+                saveRecordRequest.getAccount(),
+                saveRecordRequest.getUserSeq(),
+                saveRecordRequest.getAmount()
         );
+        distributedIncomeClient.notifyDistributedIncome(dto);
     }
 
 }

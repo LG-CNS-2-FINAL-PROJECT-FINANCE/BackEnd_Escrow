@@ -5,8 +5,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "balanceClient", url = "${external.balance-service.url}")
+@FeignClient(name = "balanceClient", url = "${external.product-service.url}")
 public interface BalanceClient {
-    @PostMapping("/api/product/balance")
+    @PostMapping("/api/product/escrow/balance")
     void sendBalance(@RequestBody BalanceRequest request);
 }

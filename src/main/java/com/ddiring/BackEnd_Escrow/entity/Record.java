@@ -48,6 +48,10 @@ public class Record {
     @Column(name = "amount", nullable = false)
     private Integer amount;
 
+    //잔액
+    @Column(name = "balance", nullable = false)
+    private Integer balance;
+
     //입출금 out = 0, in = 1
     @Column(name = "flow", nullable = false)
     private Integer flow;
