@@ -53,17 +53,20 @@ public class EscrowService {
                 .build();
         escrowRepository.save(escrow);
 
-        //test
-//        notificationProducer.sendNotification(
-//                //List.of("1", "2", "3", "4", "5"),
-//                //List.of("21be0bd8-f9f0-4d05-b385-4cb419d553a4"),
-//                List.of("21be0bd8-f9f0-4d05-b385"),
-//                NotificationType.INFORMATION.name(),
-//                "에스크로 계좌 생성",
-//                "에스크로 계좌가 생성되었습니다.: " + accountNumber
-//        );
+        //트랜잭션 바깥으로 FCM/Kafka 전송 분리
+        //sendNotificationAsync(escrow);
 
         return CreateAccountResponse.fromEntity(escrow);
+    }
+
+    private void sendNotificationAsync(Escrow escrow) {
+        List<String> userSeqList = List.of("3");
+        notificationProducer.sendNotification(
+                userSeqList,
+                NotificationType.INFORMATION.name(),
+                "에스크로 계좌 생성",
+                "에스크로 계좌가 생성되었습니다.333333: " + escrow.getAccount()
+        );
     }
 
     //중복체크 후 계좌번호 생성

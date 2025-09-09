@@ -122,7 +122,7 @@ public class RecordService {
 
         recordRepository.save(record);
 
-        // 입금일 경우 Product 서비스 알림
+        //Product 서비스 알림
         if (flow == 1) {
             switch (transType) {
                 case INVESTMENT:
@@ -130,6 +130,15 @@ public class RecordService {
                     break;
                 case DISTRIBUTEIN:
                     sendDistributedIncomeNotification(saveRecordRequest);
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (flow == 0) {
+            switch (transType) {
+                case REFUND:
+                    sendBalanceToOtherService(escrow.getProjectId());
                     break;
                 default:
                     break;
