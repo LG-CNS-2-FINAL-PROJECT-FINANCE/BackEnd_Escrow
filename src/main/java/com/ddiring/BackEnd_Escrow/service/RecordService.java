@@ -31,7 +31,7 @@ public class RecordService {
     private final BalanceClient balanceClient;
     private final DistributedIncomeClient distributedIncomeClient;
 
-    // 거래내역 조회 (projectId 기준)
+    //거래내역 조회 (projectId 기준)
     public List<HistoryResponse> getRecordsByProjectId(String projectId) {
         Escrow escrow = escrowRepository.findByProjectId(projectId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.ESCROW_NOT_FOUND));
@@ -46,7 +46,7 @@ public class RecordService {
                 .toList();
     }
 
-    // 계좌 또는 프로젝트 기준 잔액 조회
+    //계좌 또는 프로젝트 기준 잔액 조회
     public BalanceResponse getBalance(String account, String projectId) {
         Integer escrowSeq = getEscrowSeq(account, projectId);
 
@@ -65,7 +65,7 @@ public class RecordService {
         return new BalanceResponse(responseProjectId, balance);
     }
 
-    // escrowSeq 조회 (account 또는 projectId)
+    //escrowSeq 조회 (account 또는 projectId)
     private Integer getEscrowSeq(String account, String projectId) {
         if (account != null) {
             return escrowRepository.findEscrowSeqByAccount(account)
@@ -78,7 +78,7 @@ public class RecordService {
         throw new IllegalArgumentException("account 또는 projectId 중 하나는 반드시 필요합니다.");
     }
 
-    // 거래내역 저장
+    //거래내역 저장
     @Transactional
     public void saveRecord(SaveRecordRequest saveRecordRequest) {
         Escrow escrow = getEscrow(saveRecordRequest.getAccount());
@@ -93,7 +93,7 @@ public class RecordService {
                 ? ErrorCode.WITHDRAW_AMOUNT_INVALID.defaultMessage()
                 : ErrorCode.DEPOSIT_AMOUNT_INVALID.defaultMessage());
 
-        // 최신 거래 잔액 조회
+        //최신 거래 잔액 조회
         Record latestRecord = recordRepository.findTopByEscrow_EscrowSeqOrderByCompletedAtDesc(escrow.getEscrowSeq());
         Integer currentBalance = latestRecord != null ? latestRecord.getBalance() : 0;
 
@@ -146,13 +146,13 @@ public class RecordService {
         }
     }
 
-    // 계좌 조회
+    //계좌 조회
     private Escrow getEscrow(String account) {
         return escrowRepository.findByAccount(account)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.ESCROW_NOT_FOUND));
     }
 
-    // TransType에 따른 플로우 결정 (0: 출금, 1: 입금)
+    //TransType에 따른 플로우 결정 (0: 출금, 1: 입금)
     private int getFlowByTransType(TransType transType) {
         if (transType == null) {
             throw new ApplicationException(ErrorCode.INVALID_TRANS_TYPE);
@@ -163,21 +163,21 @@ public class RecordService {
         };
     }
 
-    // 금액 유효성 체크
+    //금액 유효성 체크
     private void validatePositiveAmount(Integer amount, String message) {
         if (amount == null || amount <= 0) {
             throw new ApplicationException(ErrorCode.INVALID_PARAMETER, message);
         }
     }
 
-    // Product 서비스에 잔액 전달
+    //Product 서비스에 잔액 전달
     public void sendBalanceToOtherService(String projectId) {
         BalanceResponse balanceResponse = getBalance(null, projectId);
         BalanceRequest request = new BalanceRequest(projectId, balanceResponse.getBalance());
         balanceClient.sendBalance(request);
     }
 
-    // Product 서비스에 분배금 입금 알림만 전달
+    //Product 서비스에 분배금 입금 알림만 전달
     public void sendDistributedIncomeNotification(SaveRecordRequest saveRecordRequest) {
         DistributedIncomeRequest dto = new DistributedIncomeRequest(
                 saveRecordRequest.getAccount(),
